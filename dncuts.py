@@ -1,6 +1,6 @@
 import numpy as np
 from ncuts import ncuts
-
+from whiten import whiten
 
 def dncuts(A, NVEC, N_DOWNSAMPLE, DECIMATE, SZ):
     # A = affinity matrix
