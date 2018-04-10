@@ -1,11 +1,5 @@
 import numpy as np
 
-with open('evarraygg','r') as f:
-    x = f.read()
-x = x.split('\n')
-x = x[:len(x)-1]
-x = np.matrix([[float(__) for __ in _.split(',')] for _ in x])
-
 def whiten(X, DO_CENTER = 1, V_PAD = 0.1):
     N_cov = 100000
     m = np.mean(X, 0)
@@ -31,5 +25,3 @@ def whiten(X, DO_CENTER = 1, V_PAD = 0.1):
     X_white = X_white/mag
 
     return X_white
-
-print(whiten(x, 1, 0))
