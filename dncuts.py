@@ -1,50 +1,5 @@
-"""
-A_down = A;
-SZ_down = SZ;
-Bs = cell(N_DOWNSAMPLE,1);
-
-for di = 1:N_DOWNSAMPLE
-  
-  % Create a binary array of the pixels that will remain after decimating
-  
-  % every other row and column
-  [i,j] = ind2sub(SZ_down, 1:size(A_down,1));
-  do_keep = (mod(i, DECIMATE) == 0) & (mod(j, DECIMATE) == 0);
-  
-  % Downsample the affinity matrix
-  A_sub = A_down(:,do_keep)';
-  
-  % Normalize the downsampled affinity matrix
-  d = (sum(A_sub,1) + eps);
-  B = bsxfun(@rdivide, A_sub, d)';
-  
-  % "Square" the affinity matrix, while downsampling
-  A_down = A_sub*B;
-
-  SZ_down = floor(SZ_down / 2);
-  
-  % Hold onto the normalized affinity matrix for bookkeeping
-  Bs{di} = B;  
-
-end
-
-% Get the eigenvectors of the Laplacian
-%EV = ncuts(A_down, NVEC);
-[EV, EVal] = ncuts(A_down, NVEC);
-
-% Upsample the eigenvectors
-for di = N_DOWNSAMPLE:-1:1
-  EV = Bs{di} * EV;
-end
-
-% "Upsample" the eigenvalues (I'm not sure why this works, but it seems
-% reasonable)
-EVal = (2 ^ -N_DOWNSAMPLE) * EVal;
-
-% whiten the eigenvectors, as they can get scaled weirdly during upsampling
-EV = whiten(EV, 1, 0);
-"""
 import numpy as np
+from ncuts import ncuts
 
 
 def dncuts(A, NVEC, N_DOWNSAMPLE, DECIMATE, SZ):
@@ -61,6 +16,24 @@ def dncuts(A, NVEC, N_DOWNSAMPLE, DECIMATE, SZ):
     for di in range(N_DOWNSAMPLE):
         # i, j = np.ravel_multi_index(SZ_down, range(A_down.shape[0]))
         (j, i) = np.unravel_index(range(A_down.shape[0]), SZ_down)
-        do_keep = (i%DECIMATE == 0) and (j%DECIMATE == 0)
+        do_keep = np.logical_and((i%DECIMATE == 0),(j%DECIMATE == 0))
         A_sub = np.transpose(A_down[:,do_keep])
-        d = np.sum(A_sub, 0)
+        d = np.sum(A_sub, 0) + (np.finfo(float).eps)
+        B = (A_sub / d).T
+
+        A_down = np.matmul(A_sub, B).T
+
+        SZ_down = np.floor(SZ_down / 2)
+
+        Bs[di] = B
+
+    EV, EVal = ncuts(A_down, NVEC)
+
+    for di in range(N_DOWNSAMPLE-1,-1,-1):
+        EV = Bs[di] * EV
+    
+    EVal = (2 ** -N_DOWNSAMPLE) * EVal
+
+    EV = whiten(EV,1, 0)
+
+    return EV, EVal
