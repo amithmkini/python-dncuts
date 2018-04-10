@@ -1,5 +1,5 @@
 import numpy as np
-import scipy import sparse
+from scipy import sparse
 
 def sub2ind(array_shape, rows, cols):
     ind = rows*array_shape[1] + cols
@@ -29,8 +29,8 @@ def getGaussianAffinity(im, xy_radius, rgb_sigma):
     j_ = np.add(j, dj.T)
     
     v = (i_>=1)&(i_<=im.shape[0])&(j_>=1)&(j_<=im.shape[1])
-    pair_i = sub2ind(sz, i[v], j[v]);
-    pair_j = sub2ind(sz, i_[v], j_[v]);
+    pair_i = sub2ind(sz, i[v], j[v])
+    pair_j = sub2ind(sz, i_[v], j_[v])
     
     # Weight each pair by the difference in RGB values, divided by RGB_SIGMA
     RGB = np.reshape(im, -1, im.shape[2]).astype('float32')

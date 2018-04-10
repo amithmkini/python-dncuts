@@ -7,8 +7,8 @@ def ncuts(A, n_ev):
     nvec = n_ev + 1
 
     EVal, EV = sparse.linalg.eigs((D - A) + (pow(10,-10) * sparse.eye(D.shape)), M=D, k=nvec, which='sm') # Hoping for the best here
-    sortidx = v.argsort()[::-1]
     v = np.diag(EV)
+    sortidx = v.argsort()[::-1]
     EVal = v[sortidx[:-1][::-1]]
 
     EV = EV / np.sqrt(np.sum(EV**2))
