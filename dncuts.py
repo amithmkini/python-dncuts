@@ -11,11 +11,10 @@ def dncuts(A, NVEC, N_DOWNSAMPLE, DECIMATE, SZ):
     # SZ = size of the image corresponding to A
 
     A_down = A
-    SZ_down = np.array(SZ, dtype=np.int64)
+    SZ_down = np.array(SZ, dtype=np.int64)[:2]
     Bs = {}
 
     for di in range(N_DOWNSAMPLE):
-        # i, j = np.ravel_multi_index(SZ_down, range(A_down.shape[0]))
         (j, i) = np.unravel_index(range(A_down.shape[0]), SZ_down)
         do_keep = np.logical_and((i%DECIMATE == 0),(j%DECIMATE == 0))
         do_keep_idx = np.argwhere(do_keep).flatten()

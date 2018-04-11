@@ -48,12 +48,7 @@ def getGaussianAffinity(im, xy_radius, rgb_sigma):
     RGB = RGB/rgb_sigma
     
     W = np.exp(-np.sum(np.square(RGB[pair_i,:] - RGB[pair_j,:]),axis=1))
-    print(W.shape)
     # Construct an affinity matrix
     A = sparse.csr_matrix((W, (pair_i, pair_j)), shape=(np.prod(sz, axis=0), np.prod(sz, axis=0)))
     return A
 
-import cv2
-image = cv2.imread('lena.bmp')
-image = cv2.resize(image, (256, 256))
-getGaussianAffinity(image, 7, 30)
