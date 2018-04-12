@@ -49,6 +49,6 @@ def getGaussianAffinity(im, xy_radius, rgb_sigma):
     
     W = np.exp(-np.sum(np.square(RGB[pair_i,:] - RGB[pair_j,:]),axis=1))
     # Construct an affinity matrix
-    A = sparse.csr_matrix((W, (pair_i, pair_j)), shape=(np.prod(sz, axis=0), np.prod(sz, axis=0)))
+    A = sparse.csc_matrix((W, (pair_i, pair_j)), shape=(np.prod(sz, axis=0), np.prod(sz, axis=0)))
     return A
 

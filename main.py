@@ -2,8 +2,75 @@ import numpy as np
 import cv2
 from getGaussianAffinity import getGaussianAffinity
 from dncuts import dncuts
+import matplotlib.pyplot as plt
+import imageio
 from ncuts import ncuts
 import time
+import pickle
+
+def visualize(evf, evt, evl, im, nvec):
+    vistrue = evt.reshape(len(im[:,0,0]), len(im[0,:,0]), -1)
+    visfast = evf.reshape(len(im[:,0,0]), len(im[0,:,0]), -1)
+    vist = vistrue[:,:,:nvec]
+    visf = visfast[:,:,:nvec]
+    
+    vistrue = 4 * np.sign(vist) * np.abs(vist)**(1/2)
+    visfast = 4 * np.sign(visf) * np.abs(visf)**(1/2)
+
+    vistrue = np.maximum(0, np.minimum(1, vistrue))
+    visfast = np.maximum(0, np.minimum(1, visfast))
+    g,h,l = vistrue.shape
+    m = int(np.floor(np.sqrt(l)))
+    n = int(np.ceil(l/m))
+
+    mont_true = np.zeros((g*m, h*n))
+    mont_fast = np.zeros((g*m, h*n))
+
+    #Construct montage
+    count = 0
+    for i in range(m):
+        for j in range(n):
+            try:
+                mont_true[i*g:g+i*g,j*h:h+j*h] = vistrue[:,:,count] 
+                mont_fast[i*g:g+i*g,j*h:h+j*h] = visfast[:,:,count]
+            except:
+                mont_true[i*g:g+i*g,j*h:h+j*h] = 0 
+                mont_fast[i*g:g+i*g,j*h:h+j*h] = 0
+            count = count + 1
+    fig = plt.figure()
+    ax1 = fig.add_subplot(2,1,1)
+    ax1.set_title('True eigenvectors: 1 - {0}'.format(nvec))
+    ax1.imshow(mont_true)
+    ax2 = fig.add_subplot(2,1,2)
+    ax2.set_title('Fast eigenvectors: 1 - {0}'.format(nvec))
+    ax2.imshow(mont_fast)
+    
+    plt.savefig('true_vs_fast_montage.png')
+    pickle.dump(fig, open('true_vs_fast_montage.pickle', 'wb') )
+
+    #   Plots montage
+    # if 'graph' in config and config['graph']:
+    #     plt.show();
+    plt.clf()
+
+    ax = fig.gca()  
+    im = np.zeros((im.shape[0], im.shape[1]))
+    ev = visf
+    ev = ev.transpose(1,0,2)
+    for i in range(nvec):
+        im = im + ev[:,:,i]
+
+    im = im.astype(np.float32) 
+    ax.imshow(im)
+    
+    plt.savefig('eigvonimage.png')
+    pickle.dump(fig, open('eigvonimage.pickle', 'wb') )
+
+    #   Plots eigenvectors
+    # if 'graph' in config and config['graph']:
+    #     plt.show();
+    plt.clf()
+
 
 XY_RADIUS = 7
 RGB_SIGMA = 30
@@ -57,6 +124,8 @@ vis_fast = np.array(EV_fast).reshape(im.shape[0], im.shape[1], 1, 16)
 
 vis_true = (4 * np.sign(vis_true)) * np.sqrt(abs(vis_true))
 vis_fast = (4 * np.sign(vis_fast)) * np.sqrt(abs(vis_fast))
+
+visualize(EV_fast, EV_true, EVal_fast, im, NVEC)
 
 # figure; montage(max(0, min(1, vis_true + 0.5))); colormap(betterjet); title('true eigenvectors');
 # figure; montage(max(0, min(1, vis_fast + 0.5))); colormap(betterjet); title('fast approximate eigenvectors');
